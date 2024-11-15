@@ -1,0 +1,56 @@
+import os
+import json
+from google.cloud import translate_v2 as translate
+
+# Configura tu clave API (puedes configurarla como variable de entorno o en un archivo)
+API_KEY = "aqui pondria mi api key de gooogle traductor pero ando cortina"
+
+# Función para leer el archivo JSON
+def read_json(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+# Función para escribir en el archivo JSON
+def write_json(file_path, data):
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+# Función para traducir los textos usando Google Translate API
+def translate_text(text, target_language='en'):
+    client = translate.Client()
+    # Traducción del texto usando Google Translate API
+    result = client.translate(text, target_language=target_language)
+    return result['translatedText']
+
+# Función para traducir los diálogos en los archivos JSON
+def translate_dialogs(data, target_language='en'):
+    for key, value in data.items():
+        if 'dialog' in value:
+            original_text = value['dialog']
+            translated_text = translate_text(original_text, target_language)
+            value['dialog'] = translated_text
+    return data
+
+# Función para verificar que estamos en la carpeta correcta del juego
+def check_game_folder():
+    return "Data" in os.listdir()  # Verifica si la carpeta 'Data' está presente
+
+# Ruta del archivo JSON que deseas traducir
+file_path = "Data/Messages.json"
+
+# Verifica si el script está dentro de la carpeta del juego
+if not check_game_folder():
+    print("El programa debe estar dentro de la carpeta del juego de RPG Maker.")
+    exit()
+
+# Leer el archivo JSON
+messages = read_json(file_path)
+
+# Traducir los diálogos
+translated_messages = translate_dialogs(messages, target_language='en')
+
+# Guardar el archivo traducido
+write_json(file_path, translated_messages)
+
+print("¡Traducción completada!")
+
